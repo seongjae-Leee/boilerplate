@@ -48,7 +48,7 @@ userSchema.pre('save', function (next) {
         next();
       });
     });
-  } else {
+  } else { // 이 else 문 없으면 끝나지 않음
     next();
   }
 });
