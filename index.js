@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const port = 5000;
 const { User } = require('./models/User');
+const { auth } = require('./middleware/auth');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const config = require('./config/key');
@@ -24,7 +25,7 @@ app.get('/', (req, res) => {
 });
 
 // 회원가입을 위한 라우터(POST)
-app.post('/register', (req, res) => {
+app.post('/api/users/register', (req, res) => {
   // 회원가입 정보 client에서 가져오면 데이터베이스로 넣어준다.
   const user = new User(req.body); //json 형식으로 유저 스키마의 내용이 담겨있다.
   // 몽고DB 내장함수 save
@@ -38,7 +39,7 @@ app.post('/register', (req, res) => {
 });
 
 // 로그인 라우터
-app.post('/login', (req, res) => {
+app.post('/api/users/login', (req, res) => {
   // 요청된 이메일이 데이터베이스에 있는지 찾는다.
   User.findOne({ email: req.body.email }, (err, user) => {
     if (!user) {
@@ -68,7 +69,20 @@ app.post('/login', (req, res) => {
   // 비밀번호까지 맞다면 토큰 생성.
 });
 
+// 페이지별 권한 설정(JWT 이용).. auth 미들웨어 이용
+app.get('/api/users/auth', auth, (req, res) => {
+  // 이 아랫줄이 실행된다는 것은 auth라는 미들웨어를 통과해왔다는 뜻.
+  res.status(200).json({
+    _id: req.user._id,
+    isAdmin: req.user.role === 0 ? false : true,
+    isAuth: true,
+    email: req.user.email,
+    name: req.user.name,
+    role: req.user.role,
+    image: req.user.image,
+  });
 
+});
 
 
 
